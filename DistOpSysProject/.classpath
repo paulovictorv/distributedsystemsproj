@@ -2,5 +2,10 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="C:/Users/Paulo/Desktop/jade/Bibliotecas/lib/http.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Paulo/Desktop/jade/Bibliotecas/lib/iiop.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Paulo/Desktop/jade/Bibliotecas/lib/jade.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Paulo/Desktop/jade/Bibliotecas/lib/jadeTools.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Paulo/Desktop/jade/Bibliotecas/lib/commons-codec/commons-codec-1.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
