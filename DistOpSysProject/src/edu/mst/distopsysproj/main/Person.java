@@ -1,6 +1,8 @@
 package edu.mst.distopsysproj.main;
 
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.lang.acl.ACLMessage;
 
 public class Person extends Agent {
 	private static final long serialVersionUID = 1L;
@@ -23,4 +25,26 @@ public class Person extends Agent {
 		return location;
 	}
 	
+	
+
+	private class ReceiveMessageBehaviour extends CyclicBehaviour {
+
+		private static final long serialVersionUID = -4335481543559741074L;
+		
+		@Override
+		public void action() {
+			ACLMessage msg = receive();
+			if (msg != null){
+				if (msg.getContent().equals(ProtocolConstants.INFORM_LOCATION_REQUEST)) {
+					System.out.println("Message received: " + msg.getContent() + "  by: " + getName());
+					ACLMessage reply = msg.createReply();
+					reply.setContent(getLocation().toString());
+					send(reply);
+				}
+			}
+		}
+	}
+
+
+
 }
