@@ -10,10 +10,11 @@ public class GUI extends Agent {
 	@Override
 	protected void setup() {
 		System.out.println("Hello! " + getAID().getName() + " is ready!");
-		addBehaviour(new ReceiveMessageBehaviour());
 		
 		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-		msg.addReceiver(new AID("agenttwo", AID.ISLOCALNAME));
+		for (String person : Person.persons) {
+			msg.addReceiver(new AID(person, AID.ISLOCALNAME));
+		}
 		msg.setLanguage("English");
 		msg.setContent("Testing message passing");
 		send(msg);
