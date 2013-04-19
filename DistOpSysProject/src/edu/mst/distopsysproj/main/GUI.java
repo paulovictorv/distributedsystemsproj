@@ -4,8 +4,7 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 
-public class CrossingBridge extends Agent {
-
+public class GUI extends Agent {
 	private static final long serialVersionUID = -8484372606650826462L;
 
 	@Override

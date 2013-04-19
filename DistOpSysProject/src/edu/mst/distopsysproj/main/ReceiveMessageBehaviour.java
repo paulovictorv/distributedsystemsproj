@@ -11,8 +11,8 @@ public class ReceiveMessageBehaviour extends Behaviour {
 	public void action() {
 		ACLMessage msg = myAgent.receive();
 		if (msg != null){
-			System.out.println(myAgent.getAID().getName() + " received : " + msg.getContent());
-			System.out.println("From: " + msg.getSender().getName());
+			System.out.print(myAgent.getAID().getName() + " received: " + msg.getContent());
+			System.out.println(" from: " + msg.getSender().getName());
 		}
 	}
 
