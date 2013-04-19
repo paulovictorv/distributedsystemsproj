@@ -12,6 +12,7 @@ public class GUI extends Agent {
 		System.out.println("Hello! " + getAID().getName() + " is ready!");
 		
 		addBehaviour(new AskLocationBehaviour(this, ProtocolConstants.ASK_LOCATION_INTERVAL, Person.persons));
+		
 	}
 	
 	@Override
