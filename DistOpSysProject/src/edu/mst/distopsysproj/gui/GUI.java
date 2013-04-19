@@ -1,5 +1,7 @@
-package edu.mst.distopsysproj.main;
+package edu.mst.distopsysproj.gui;
 
+import edu.mst.distopsysproj.person.Person;
+import edu.mst.distopsysproj.util.ProtocolConstants;
 import jade.core.Agent;
 
 public class GUI extends Agent {

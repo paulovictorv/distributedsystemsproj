@@ -1,4 +1,4 @@
-package edu.mst.distopsysproj.main;
+package edu.mst.distopsysproj.util;
 
 public class ProtocolConstants {
 	

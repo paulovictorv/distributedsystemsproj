@@ -1,5 +1,6 @@
-package edu.mst.distopsysproj.main;
+package edu.mst.distopsysproj.person;
 
+import edu.mst.distopsysproj.util.ProtocolConstants;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
