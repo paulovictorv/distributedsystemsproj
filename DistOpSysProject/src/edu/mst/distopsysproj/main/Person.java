@@ -28,7 +28,6 @@ public class Person extends Agent {
 	
 
 	private class ReceiveMessageBehaviour extends CyclicBehaviour {
-
 		private static final long serialVersionUID = -4335481543559741074L;
 		
 		@Override
@@ -39,9 +38,10 @@ public class Person extends Agent {
 					System.out.println("Message received: " + msg.getContent() + "  by: " + getName());
 					ACLMessage reply = msg.createReply();
 					reply.setContent(getLocation().toString());
+					reply.setConversationId(ProtocolConstants.INFORM_LOCATION_CONVID);
 					send(reply);
 				}
-			}
+			}else block();
 		}
 	}
 
