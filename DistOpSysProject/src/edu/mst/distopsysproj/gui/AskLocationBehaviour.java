@@ -28,8 +28,6 @@ public class AskLocationBehaviour extends TickerBehaviour {
 		msg.setLanguage("English");
 		msg.setContent(ProtocolConstants.INFORM_LOCATION_REQUEST);
 		
-		System.out.println("Sent Request: " + msg.getContent());
-		
 		myAgent.send(msg);
 		
 		myAgent.addBehaviour(new ReceiveLocationBehaviour());

@@ -35,7 +35,6 @@ public class ReceiveLocationBehaviour extends OneShotBehaviour {
 			} else block();
 		}
 		//TODO atualizar tela
-		System.out.println(location);
 		cntLocationGetter = 0;
 		location.clear();
 		
