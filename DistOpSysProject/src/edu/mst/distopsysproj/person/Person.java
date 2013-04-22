@@ -3,7 +3,6 @@ package edu.mst.distopsysproj.person;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 
 import java.util.HashMap;
@@ -19,7 +18,7 @@ public class Person extends Agent {
 
 	private Boolean tryCS, want, in;
 	private Integer acksNumber;
-	private Long timestamp;
+	private long timestamp;
 	private HashMap<String, Boolean> acksMap;
 
 	@Override
@@ -38,7 +37,7 @@ public class Person extends Agent {
 		else if(getName().contains("person3")
 				|| getName().contains("person4")) this.location = Location.B;
 		
-		if(getName().contains("person1") || getName().contains("person2")) tryCS = true;
+		tryCS = true;
 		
 		//addBehaviour(new ReceiveMessageBehaviour());
 		addBehaviour(new CrossBridgeBehaviourAgrawala());
@@ -76,7 +75,6 @@ public class Person extends Agent {
 		public void action() {
 			
 			if(tryCS){
-				System.out.println("Person " + myAgent.getLocalName() + " has try = true");
 				ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
 				request.setContent(ProtocolConstants.MSGTYPE_REQUEST);
 				timestamp = System.currentTimeMillis();
@@ -95,6 +93,12 @@ public class Person extends Agent {
 				in = true;
 				//process enters CS
 				System.out.println("Person " + myAgent.getLocalName() + " is on the bridge");
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				want = false;
 			}
 			
@@ -113,40 +117,47 @@ public class Person extends Agent {
 					}
 				}
 				send(ack);
+				try {
+					Thread.sleep(1000);
+					tryCS = true;
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 
 			ACLMessage msg = receive();
 			
 			if (msg != null){
-				
 				if(msg.getContent().equals(ProtocolConstants.MSGTYPE_REQUEST)) {
-					System.out.println(getLocalName() + " received request from: " + msg.getSender().getLocalName() 
-										+ " at " + msg.getUserDefinedParameter(ProtocolConstants.TIMESTAMP) );
+					//System.out.println(getLocalName() + " received request from: " + msg.getSender().getLocalName() 
+									//	+ " at " + msg.getUserDefinedParameter(ProtocolConstants.TIMESTAMP) );
 					if(!want || compareTimestamps(msg, timestamp)){						
 						ACLMessage ack = msg.createReply();
 						ack.setContent(ProtocolConstants.MSGTYPE_ACK);
 						ack.addUserDefinedParameter(ProtocolConstants.TIMESTAMP, String.valueOf(System.currentTimeMillis()));
 						send(ack);
-						System.out.println(getLocalName() + " sending ack to " + msg.getSender().getLocalName());
+						//System.out.println(getLocalName() + " sending ack to " + msg.getSender().getLocalName());
 					}else{
-						System.out.println(getLocalName() + " buffered request from " + msg.getSender().getLocalName());
+						//System.out.println(getLocalName() + " buffered request from " + msg.getSender().getLocalName());
 						String sender = msg.getSender().getLocalName();
 						acksMap.put(sender, true);
 					}
 				}
 				
 				if(msg.getContent().equals(ProtocolConstants.MSGTYPE_ACK)) {
-					System.out.println(getLocalName() + " received ack from " + msg.getSender().getLocalName());
+					//System.out.println(getLocalName() + " received ack from " + msg.getSender().getLocalName());
 					acksNumber = acksNumber + 1;
 				}
 			}
 		}
 		
-		private boolean compareTimestamps(ACLMessage msg, Long lTimestamp){
-			if ( Long.valueOf(msg.getUserDefinedParameter(ProtocolConstants.TIMESTAMP)) < lTimestamp ){
+		private boolean compareTimestamps(ACLMessage msg, long localTimestamp){
+			long msgTimestamp = Long.valueOf(msg.getUserDefinedParameter(ProtocolConstants.TIMESTAMP)).longValue();
+			if ( msgTimestamp < localTimestamp ){
 				return true;
-			} else if( Long.valueOf(msg.getUserDefinedParameter(ProtocolConstants.TIMESTAMP)) == lTimestamp ){
-				return msg.getSender().getLocalName().compareTo(getLocalName()) > 0;
+			} else if( msgTimestamp == localTimestamp ){
+				return getLocalName().compareTo(msg.getSender().getLocalName()) > 0;
 			} else {
 				return false;
 			}
