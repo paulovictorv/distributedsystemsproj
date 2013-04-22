@@ -9,7 +9,7 @@ public class GUI extends Agent {
 
 	@Override
 	protected void setup() {		
-		addBehaviour(new AskLocationBehaviour(this, ProtocolConstants.ASK_LOCATION_INTERVAL, Person.persons));
+		//addBehaviour(new AskLocationBehaviour(this, ProtocolConstants.ASK_LOCATION_INTERVAL, Person.persons));
 		
 	}
 	

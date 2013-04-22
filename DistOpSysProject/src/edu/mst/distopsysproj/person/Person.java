@@ -3,6 +3,7 @@ package edu.mst.distopsysproj.person;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 
 import java.util.HashMap;
@@ -37,9 +38,10 @@ public class Person extends Agent {
 		else if(getName().contains("person3")
 				|| getName().contains("person4")) this.location = Location.B;
 		
-		if(getName().contains("person1")) tryCS = true;
-
-		addBehaviour(new ReceiveMessageBehaviour());
+		if(getName().contains("person1") || getName().contains("person2")) tryCS = true;
+		
+		//addBehaviour(new ReceiveMessageBehaviour());
+		addBehaviour(new CrossBridgeBehaviourAgrawala());
 	}
 
 	public Location getLocation() {
@@ -58,67 +60,96 @@ public class Person extends Agent {
 					reply.setContent(getLocation().toString());
 					reply.setConversationId(ProtocolConstants.INFORM_LOCATION_CONVID);
 					send(reply);
-				}else{
-					if(tryCS){
-						System.out.println("Person " + myAgent.getLocalName() + " has try = true");
-						ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
-						request.setContent(ProtocolConstants.MSGTYPE_REQUEST);
-						timestamp = System.currentTimeMillis();
-						request.addUserDefinedParameter(ProtocolConstants.TIMESTAMP, String.valueOf(timestamp));
-						for (String target : persons){
-							if(!getName().contains(target)){							
-								msg.addReceiver(new AID(target, AID.ISLOCALNAME));
-							}
-						}
-						send(request);
-						tryCS = false;
-						want = true;
-					}
+				} else{
 
-					if(msg.getContent().equals(ProtocolConstants.MSGTYPE_REQUEST)) {
-						if(!want || Long.valueOf(msg.getUserDefinedParameter(ProtocolConstants.TIMESTAMP)) < timestamp){						
-							ACLMessage ack = msg.createReply();
-							ack.setContent(ProtocolConstants.MSGTYPE_ACK);
-							ack.addUserDefinedParameter(ProtocolConstants.TIMESTAMP, String.valueOf(System.currentTimeMillis()));
-							send(ack);
-						}else{
-							String sender = msg.getSender().getLocalName();
-							acksMap.put(sender, true);
-						}
-					}
-					
-					if(msg.getContent().equals(ProtocolConstants.MSGTYPE_ACK)) {
-						acksNumber = acksNumber + 1;
-					}
-					
-					if(acksNumber == persons.length-1){
-						in = true;
-						//process enters CS
-						System.out.println("Person " + myAgent.getLocalName() + " is on the bridge");
-						want = false;
-					}
-					
-					if(in && !want){
-						in = false;
-						acksNumber = 0;
-						System.out.println("Person " + myAgent.getLocalName() + " left the bridge");
-						ACLMessage ack = new ACLMessage(ACLMessage.REQUEST);
-						ack.setContent(ProtocolConstants.MSGTYPE_ACK);
-						ack.addUserDefinedParameter(ProtocolConstants.TIMESTAMP, String.valueOf(System.currentTimeMillis()));
-						for (String p : acksMap.keySet()) {
-							Boolean val = acksMap.get(p);
-							if(val){
-								ack.addReceiver(new AID(p, AID.ISLOCALNAME));
-								val = false;
-							}
-						}
-					}
 				}
 
 			}else block();
 		}
 	}
 
+	private class CrossBridgeBehaviourAgrawala extends CyclicBehaviour {
 
+		private static final long serialVersionUID = 1L;
 
+		@Override
+		public void action() {
+			
+			if(tryCS){
+				System.out.println("Person " + myAgent.getLocalName() + " has try = true");
+				ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
+				request.setContent(ProtocolConstants.MSGTYPE_REQUEST);
+				timestamp = System.currentTimeMillis();
+				request.addUserDefinedParameter(ProtocolConstants.TIMESTAMP, String.valueOf(timestamp));
+				for (String target : persons){
+					if(!getName().contains(target)){							
+						request.addReceiver(new AID(target, AID.ISLOCALNAME));
+					}
+				}
+				send(request);
+				tryCS = false;
+				want = true;
+			}
+	
+			if(acksNumber == persons.length-1){
+				in = true;
+				//process enters CS
+				System.out.println("Person " + myAgent.getLocalName() + " is on the bridge");
+				want = false;
+			}
+			
+			if(in && !want){
+				in = false;
+				acksNumber = 0;
+				System.out.println("Person " + myAgent.getLocalName() + " left the bridge");
+				ACLMessage ack = new ACLMessage(ACLMessage.REQUEST);
+				ack.setContent(ProtocolConstants.MSGTYPE_ACK);
+				ack.addUserDefinedParameter(ProtocolConstants.TIMESTAMP, String.valueOf(System.currentTimeMillis()));
+				for (String p : acksMap.keySet()) {
+					Boolean val = acksMap.get(p);
+					if(val){
+						ack.addReceiver(new AID(p, AID.ISLOCALNAME));
+						val = false;
+					}
+				}
+				send(ack);
+			}
+
+			ACLMessage msg = receive();
+			
+			if (msg != null){
+				
+				if(msg.getContent().equals(ProtocolConstants.MSGTYPE_REQUEST)) {
+					System.out.println(getLocalName() + " received request from: " + msg.getSender().getLocalName() 
+										+ " at " + msg.getUserDefinedParameter(ProtocolConstants.TIMESTAMP) );
+					if(!want || compareTimestamps(msg, timestamp)){						
+						ACLMessage ack = msg.createReply();
+						ack.setContent(ProtocolConstants.MSGTYPE_ACK);
+						ack.addUserDefinedParameter(ProtocolConstants.TIMESTAMP, String.valueOf(System.currentTimeMillis()));
+						send(ack);
+						System.out.println(getLocalName() + " sending ack to " + msg.getSender().getLocalName());
+					}else{
+						System.out.println(getLocalName() + " buffered request from " + msg.getSender().getLocalName());
+						String sender = msg.getSender().getLocalName();
+						acksMap.put(sender, true);
+					}
+				}
+				
+				if(msg.getContent().equals(ProtocolConstants.MSGTYPE_ACK)) {
+					System.out.println(getLocalName() + " received ack from " + msg.getSender().getLocalName());
+					acksNumber = acksNumber + 1;
+				}
+			}
+		}
+		
+		private boolean compareTimestamps(ACLMessage msg, Long lTimestamp){
+			if ( Long.valueOf(msg.getUserDefinedParameter(ProtocolConstants.TIMESTAMP)) < lTimestamp ){
+				return true;
+			} else if( Long.valueOf(msg.getUserDefinedParameter(ProtocolConstants.TIMESTAMP)) == lTimestamp ){
+				return msg.getSender().getLocalName().compareTo(getLocalName()) > 0;
+			} else {
+				return false;
+			}
+		}
+	}
 }
