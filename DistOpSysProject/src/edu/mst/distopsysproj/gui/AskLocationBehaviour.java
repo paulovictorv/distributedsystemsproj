@@ -12,9 +12,12 @@ public class AskLocationBehaviour extends TickerBehaviour {
 	
 	private String[] receivers;
 	
-	public AskLocationBehaviour(Agent a, long period, String[] receivers) {
+	private BridgeCrossingFrame guiFrame;
+	
+	public AskLocationBehaviour(Agent a, long period, String[] receivers, BridgeCrossingFrame guiFrame) {
 		super(a, period);
 		this.receivers = receivers;
+		this.guiFrame = guiFrame;
 	}
 
 	@Override
@@ -29,8 +32,8 @@ public class AskLocationBehaviour extends TickerBehaviour {
 		msg.setContent(ProtocolConstants.INFORM_LOCATION_REQUEST);
 		
 		myAgent.send(msg);
-		
-		myAgent.addBehaviour(new ReceiveLocationBehaviour());
+
+		myAgent.addBehaviour(new ReceiveLocationBehaviour(guiFrame));
 	}
 
 }

@@ -4,6 +4,7 @@ import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import edu.mst.distopsysproj.person.Location;
@@ -16,11 +17,13 @@ public class ReceiveLocationBehaviour extends OneShotBehaviour {
 
 	private int cntLocationGetter;
 	private Map<String, Location> location;
+	private BridgeCrossingFrame guiFrame;
 	
-	public ReceiveLocationBehaviour() {
+	public ReceiveLocationBehaviour(BridgeCrossingFrame guiFrame) {
 		super();
 		cntLocationGetter = 0;
 		location = new HashMap<String, Location>();
+		this.guiFrame = guiFrame;
 	}
 	
 	@Override
@@ -29,16 +32,17 @@ public class ReceiveLocationBehaviour extends OneShotBehaviour {
 			ACLMessage reply = myAgent.receive();
 			if (reply != null) {
 				if(reply.getConversationId().equals(ProtocolConstants.INFORM_LOCATION_CONVID)){
-					location.put(reply.getSender().getName(), Location.valueOf(reply.getContent()));
+					location.put(reply.getSender().getLocalName(), Location.valueOf(reply.getContent()));
 					cntLocationGetter++;
 				}
 			} else block();
 		}
-		//TODO atualizar tela
 		System.out.println(location);
+		for (Iterator<String> iterator = location.keySet().iterator(); iterator.hasNext();) {
+			String id = (String) iterator.next();
+			guiFrame.setCircleToPosition(id, location.get(id));
+		}
 		cntLocationGetter = 0;
 		location.clear();
-		
 	}
-
 }

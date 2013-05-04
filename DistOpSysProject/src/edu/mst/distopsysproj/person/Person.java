@@ -3,6 +3,7 @@ package edu.mst.distopsysproj.person;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.ParallelBehaviour;
 import jade.lang.acl.ACLMessage;
 
 import java.util.HashMap;
@@ -38,33 +39,30 @@ public class Person extends Agent {
 				|| getName().contains("person4")) this.location = Location.B;
 		
 		tryCS = true;
-		
-		//addBehaviour(new ReceiveMessageBehaviour());
-		addBehaviour(new CrossBridgeBehaviourAgrawala());
-	}
 
-	public Location getLocation() {
-		return location;
+		ParallelBehaviour parBeh = new ParallelBehaviour(this, ParallelBehaviour.WHEN_ALL);
+		parBeh.addSubBehaviour(new CrossBridgeBehaviourAgrawala());
+		parBeh.addSubBehaviour(new ReceiveMessageBehaviour());
+		addBehaviour(parBeh);
 	}
-
+	
 	private class ReceiveMessageBehaviour extends CyclicBehaviour {
 		private static final long serialVersionUID = 1L;
 
 		@Override
 		public void action() {
-			ACLMessage msg = receive();
+			ACLMessage msg = myAgent.receive();
 			if (msg != null){
 				if (msg.getContent().equals(ProtocolConstants.INFORM_LOCATION_REQUEST)) {
 					ACLMessage reply = msg.createReply();
-					reply.setContent(getLocation().toString());
+					reply.setContent(location.toString());
 					reply.setConversationId(ProtocolConstants.INFORM_LOCATION_CONVID);
-					send(reply);
-				} else{
-
-				}
-
+					System.out.println(myAgent.getLocalName() + " sent " + location.toString());
+					myAgent.send(reply);
+				}else myAgent.putBack(msg);
 			}else block();
 		}
+		
 	}
 
 	private class CrossBridgeBehaviourAgrawala extends CyclicBehaviour {
@@ -73,7 +71,6 @@ public class Person extends Agent {
 
 		@Override
 		public void action() {
-			
 			if(tryCS){
 				ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
 				request.setContent(ProtocolConstants.MSGTYPE_REQUEST);
@@ -93,8 +90,9 @@ public class Person extends Agent {
 				in = true;
 				//process enters CS
 				System.out.println("Person " + myAgent.getLocalName() + " is on the bridge");
+				location = Location.BRIDGE; //TODO check if correct, also set person's last position
 				try {
-					Thread.sleep(3000);
+					Thread.sleep(5000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -105,7 +103,10 @@ public class Person extends Agent {
 			if(in && !want){
 				in = false;
 				acksNumber = 0;
+				
 				System.out.println("Person " + myAgent.getLocalName() + " left the bridge");
+				location = Location.A; //TODO check if correct, also set person's last position
+				
 				ACLMessage ack = new ACLMessage(ACLMessage.REQUEST);
 				ack.setContent(ProtocolConstants.MSGTYPE_ACK);
 				ack.addUserDefinedParameter(ProtocolConstants.TIMESTAMP, String.valueOf(System.currentTimeMillis()));
@@ -118,7 +119,7 @@ public class Person extends Agent {
 				}
 				send(ack);
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(5000);
 					tryCS = true;
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -127,27 +128,23 @@ public class Person extends Agent {
 			}
 
 			ACLMessage msg = receive();
-			
 			if (msg != null){
-				if(msg.getContent().equals(ProtocolConstants.MSGTYPE_REQUEST)) {
-					//System.out.println(getLocalName() + " received request from: " + msg.getSender().getLocalName() 
-									//	+ " at " + msg.getUserDefinedParameter(ProtocolConstants.TIMESTAMP) );
+				String content = msg.getContent();
+				if(content.equals(ProtocolConstants.MSGTYPE_REQUEST)) {
 					if(!want || compareTimestamps(msg, timestamp)){						
 						ACLMessage ack = msg.createReply();
 						ack.setContent(ProtocolConstants.MSGTYPE_ACK);
-						ack.addUserDefinedParameter(ProtocolConstants.TIMESTAMP, String.valueOf(System.currentTimeMillis()));
+						ack.addUserDefinedParameter(ProtocolConstants.TIMESTAMP,
+								String.valueOf(System.currentTimeMillis()));
 						send(ack);
-						//System.out.println(getLocalName() + " sending ack to " + msg.getSender().getLocalName());
 					}else{
-						//System.out.println(getLocalName() + " buffered request from " + msg.getSender().getLocalName());
 						String sender = msg.getSender().getLocalName();
 						acksMap.put(sender, true);
 					}
-				}
-				
-				if(msg.getContent().equals(ProtocolConstants.MSGTYPE_ACK)) {
-					//System.out.println(getLocalName() + " received ack from " + msg.getSender().getLocalName());
+				}else if(content.equals(ProtocolConstants.MSGTYPE_ACK)) {
 					acksNumber = acksNumber + 1;
+				}else{
+					myAgent.putBack(msg);
 				}
 			}
 		}

@@ -32,9 +32,11 @@ public class BridgeCrossingFrame extends JFrame {
 			if(i < lengthOverTwo){
 				circle.setColor(Color.blue);
 				circle.setX(0);
+				circle.setPosition(Location.A);
 			}else{
 				circle.setColor(Color.red);
 				circle.setX(550);
+				circle.setPosition(Location.B);
 			}
 			
 			circle.setY(100 + i*50);
@@ -49,13 +51,17 @@ public class BridgeCrossingFrame extends JFrame {
 	
 	public void setCircleToPosition(String id, Location location) {
 		Circle circle = circles.get(id);
-		if(location == Location.A) setToLeft(circle);
-		else if(location == Location.BRIDGE) setToBridge(circle);
-		else setToRight(circle);
-		
-		try { 
-			Thread.sleep(80*UPDATE_INTERVAL);
-		}catch (Exception ex) {}
+		if(circle.getPosition() != location){			
+			if(location == Location.A) setToLeft(circle);
+			else if(location == Location.BRIDGE) setToBridge(circle);
+			else setToRight(circle);
+			
+			circle.setPosition(location);
+
+			try { 
+				Thread.sleep(80*UPDATE_INTERVAL);
+			}catch (Exception ex) {}
+		}
 	}
 	
 	private void setToLeft(Circle circle) {
