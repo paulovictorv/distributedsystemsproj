@@ -1,21 +1,19 @@
 package edu.mst.distopsysproj.gui;
 
 import jade.core.behaviours.OneShotBehaviour;
-import jade.lang.acl.ACLMessage;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import edu.mst.distopsysproj.person.Location;
-import edu.mst.distopsysproj.person.Person;
-import edu.mst.distopsysproj.util.ProtocolConstants;
+import edu.mst.distopsysproj.util.Bridge;
 
 public class ReceiveLocationBehaviour extends OneShotBehaviour {
 
 	private static final long serialVersionUID = 1L;
 
 	private int cntLocationGetter;
+	private Bridge bridge;
 	private Map<String, Location> location;
 	private BridgeCrossingFrame guiFrame;
 	
@@ -24,11 +22,12 @@ public class ReceiveLocationBehaviour extends OneShotBehaviour {
 		cntLocationGetter = 0;
 		location = new HashMap<String, Location>();
 		this.guiFrame = guiFrame;
+		this.bridge = Bridge.getInstance();
 	}
 	
 	@Override
 	public void action() {
-		while(cntLocationGetter != Person.persons.length){
+		/*while(cntLocationGetter != Person.persons.length){
 			ACLMessage reply = myAgent.receive();
 			if (reply != null) {
 				if(reply.getConversationId().equals(ProtocolConstants.INFORM_LOCATION_CONVID)){
@@ -36,13 +35,14 @@ public class ReceiveLocationBehaviour extends OneShotBehaviour {
 					cntLocationGetter++;
 				}
 			} else block();
+		}*/
+		/*System.out.println(location.toString()
+				+ '\n' + "GUI READ THE BRIDGE: " + Bridge.getInstance().toString());*/
+		String[] data = bridge.pollBridge();
+		if(data != null){			
+			guiFrame.setCircleToPosition(data[0], Location.valueOf(data[1]));
 		}
-		System.out.println(location);
-		for (Iterator<String> iterator = location.keySet().iterator(); iterator.hasNext();) {
-			String id = (String) iterator.next();
-			guiFrame.setCircleToPosition(id, location.get(id));
-		}
-		cntLocationGetter = 0;
-		location.clear();
+		/*cntLocationGetter = 0;
+		location.clear();*/
 	}
 }

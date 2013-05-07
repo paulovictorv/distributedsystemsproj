@@ -1,7 +1,6 @@
 package edu.mst.distopsysproj.gui;
 
 import jade.core.Agent;
-import edu.mst.distopsysproj.person.Location;
 import edu.mst.distopsysproj.person.Person;
 import edu.mst.distopsysproj.util.ProtocolConstants;
 
