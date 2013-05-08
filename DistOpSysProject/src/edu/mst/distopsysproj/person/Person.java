@@ -3,7 +3,6 @@ package edu.mst.distopsysproj.person;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.ParallelBehaviour;
 import jade.lang.acl.ACLMessage;
 
 import java.util.HashMap;
@@ -51,33 +50,10 @@ public class Person extends Agent {
 		
 		tryCS = true;
 
-		ParallelBehaviour parBeh = new ParallelBehaviour(this, ParallelBehaviour.WHEN_ALL);
-		parBeh.addSubBehaviour(new ReceiveMessageBehaviour());
-		parBeh.addSubBehaviour(new CrossBridgeBehaviourAgrawala());
-		addBehaviour(parBeh);
-	}
-	
-	private class ReceiveMessageBehaviour extends CyclicBehaviour {
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public void action() {
-			ACLMessage msg = myAgent.receive();
-			if (msg != null){
-				if (msg.getContent().equals(ProtocolConstants.INFORM_LOCATION_REQUEST)) {
-					ACLMessage reply = msg.createReply();
-					reply.setContent(location.toString());
-					reply.setConversationId(ProtocolConstants.INFORM_LOCATION_CONVID);
-					//System.out.println(myAgent.getLocalName() + " sent " + location.toString());
-					myAgent.send(reply);
-				}else myAgent.putBack(msg);
-			}else block();
-		}
-		
+		addBehaviour(new CrossBridgeBehaviourAgrawala());
 	}
 
 	private class CrossBridgeBehaviourAgrawala extends CyclicBehaviour {
-
 		private static final long serialVersionUID = 1L;
 		private static final long BRIDGE_WAITING_TIME = 1500;
 
@@ -101,15 +77,14 @@ public class Person extends Agent {
 			if(acksNumber == persons.length-1){
 				in = true;
 				//process enters CS
-				//System.out.println("Person " + myAgent.getLocalName() + " is on the bridge");
+				System.out.println("Person " + myAgent.getLocalName() + " is on the bridge");
 				bridge.enterBridge(myAgent.getLocalName());
 				lastLocation = location;
-				location = Location.BRIDGE; //TODO check if correct, also set person's last position
+				location = Location.BRIDGE;
 				want = false;
 				try {
 					Thread.sleep(BRIDGE_WAITING_TIME);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -118,9 +93,8 @@ public class Person extends Agent {
 				in = false;
 				acksNumber = 0;
 				
-				//System.out.println("Person " + myAgent.getLocalName() + " left the bridge");
-				//System.out.println("Current state of bridge is " + bridge);
-				location = Location.getOppositeLocation(lastLocation); //TODO check if correct, also set person's last position
+				System.out.println("Person " + myAgent.getLocalName() + " left the bridge");
+				location = Location.getOppositeLocation(lastLocation);
 				bridge.leftBridge(myAgent.getLocalName(), location);
 				
 				ACLMessage ack = new ACLMessage(ACLMessage.REQUEST);
@@ -138,7 +112,6 @@ public class Person extends Agent {
 				try {
 					Thread.sleep(BRIDGE_WAITING_TIME);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
