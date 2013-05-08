@@ -6,21 +6,30 @@ import java.awt.Graphics;
 import java.util.HashMap;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import edu.mst.distopsysproj.person.Location;
 
 public class BridgeCrossingFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
 	
-	private static final int UPDATE_INTERVAL = 5;
-	
 	private HashMap<String, Circle> circles;
 	private PaintPanel paintPanel;
+	
+	static final int SPEED_MIN = 0;
+	static final int SPEED_MAX = 30;
+	static final int SPEED_INIT = 25;
+	
+	private int speed = SPEED_MAX - SPEED_INIT;
 
 	public BridgeCrossingFrame(String[] circleIds) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(600, 400);
+		setSize(600, 420);
 		setLocationRelativeTo(null);
 		setResizable(false);
 		setTitle("Ricart-Agrawala's Protocol Test");
@@ -46,6 +55,33 @@ public class BridgeCrossingFrame extends JFrame {
 		paintPanel = new PaintPanel();
 		add(BorderLayout.CENTER, paintPanel);
 		
+		JPanel speedPanel = new JPanel(new BorderLayout(0, 5));
+		
+		JLabel speedLabel = new JLabel("Speed");
+		speedLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		speedPanel.add(BorderLayout.NORTH, speedLabel);
+		
+		JSlider speedSlider = new JSlider(JSlider.HORIZONTAL,
+				SPEED_MIN, SPEED_MAX, SPEED_INIT);
+		speedSlider.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				JSlider source = (JSlider) e.getSource();
+				if (!source.getValueIsAdjusting()) {
+					int speed = (int) source.getValue();
+					setSpeed(SPEED_MAX - speed);
+					System.out.println("Speed set to " + speed);
+				}
+			}
+		});
+		
+		speedSlider.setMajorTickSpacing(10);
+		speedSlider.setMinorTickSpacing(1);
+		speedSlider.setPaintTicks(true);
+		speedSlider.setPaintLabels(true);
+		speedPanel.add(BorderLayout.SOUTH, speedSlider);
+		
+		add(BorderLayout.NORTH, speedPanel);
 		setVisible(true);
 	}
 	
@@ -59,7 +95,7 @@ public class BridgeCrossingFrame extends JFrame {
 			circle.setPosition(location);
 
 			try { 
-				Thread.sleep(80*UPDATE_INTERVAL);
+				Thread.sleep(80*speed);
 			}catch (Exception ex) {}
 		}
 	}
@@ -69,7 +105,7 @@ public class BridgeCrossingFrame extends JFrame {
 			circle.setX(i);
 			paintPanel.repaint();
 			try { 
-				Thread.sleep(UPDATE_INTERVAL);
+				Thread.sleep(speed);
 			}catch (Exception ex) {}			
 		}
 	}
@@ -83,7 +119,7 @@ public class BridgeCrossingFrame extends JFrame {
 			
 			paintPanel.repaint();
 			try { 
-				Thread.sleep(UPDATE_INTERVAL);
+				Thread.sleep(speed);
 			}catch (Exception ex) {}	
 		}
 	}
@@ -93,9 +129,13 @@ public class BridgeCrossingFrame extends JFrame {
 			circle.setX(i);
 			paintPanel.repaint();
 			try { 
-				Thread.sleep(UPDATE_INTERVAL);
+				Thread.sleep(speed);
 			}catch (Exception ex) {}			
 		}
+	}
+	
+	public void setSpeed(Integer speed) {
+		this.speed = speed;
 	}
 	
 	private class PaintPanel extends JPanel {
