@@ -77,7 +77,7 @@ public class Person extends Agent {
 			if(acksNumber == persons.length-1){
 				in = true;
 				//process enters CS
-				System.out.println("Person " + myAgent.getLocalName() + " is on the bridge");
+				//System.out.println("Person " + myAgent.getLocalName() + " is on the bridge");
 				bridge.enterBridge(myAgent.getLocalName());
 				lastLocation = location;
 				location = Location.BRIDGE;
@@ -93,7 +93,7 @@ public class Person extends Agent {
 				in = false;
 				acksNumber = 0;
 				
-				System.out.println("Person " + myAgent.getLocalName() + " left the bridge");
+				//System.out.println("Person " + myAgent.getLocalName() + " left the bridge");
 				location = Location.getOppositeLocation(lastLocation);
 				bridge.leftBridge(myAgent.getLocalName(), location);
 				
@@ -105,9 +105,11 @@ public class Person extends Agent {
 					if(val){
 						ack.addReceiver(new AID(p, AID.ISLOCALNAME));
 						val = false;
+						acksMap.put(p, val);
 					}
 				}
 				send(ack);
+//				acksMap.clear();
 				tryCS = true;
 				try {
 					Thread.sleep(BRIDGE_WAITING_TIME);
@@ -119,19 +121,23 @@ public class Person extends Agent {
 			ACLMessage msg = receive();
 			if (msg != null){
 				String content = msg.getContent();
+				
 				if(content.equals(ProtocolConstants.MSGTYPE_REQUEST)) {
+				
 					if(!want || compareTimestamps(msg, timestamp)){						
 						ACLMessage ack = msg.createReply();
 						ack.setContent(ProtocolConstants.MSGTYPE_ACK);
 						ack.addUserDefinedParameter(ProtocolConstants.TIMESTAMP,
 								String.valueOf(System.currentTimeMillis()));
 						send(ack);
-					}else{
+					}else {
 						String sender = msg.getSender().getLocalName();
 						acksMap.put(sender, true);
 					}
+				
 				}else if(content.equals(ProtocolConstants.MSGTYPE_ACK)) {
 					acksNumber = acksNumber + 1;
+				
 				}else{
 					myAgent.putBack(msg);
 				}

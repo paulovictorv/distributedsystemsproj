@@ -30,8 +30,8 @@ public class GUI extends Agent {
 
 		@Override
 		public void action() {
-			System.out.println("GUI will execute and remove the queue's first element");
 			String[] data = bridge.pollBridge();
+			System.out.println(bridge.toString());
 			if(data != null){			
 				frame.setCircleToPosition(data[0], Location.valueOf(data[1]));
 			}
