@@ -13,7 +13,7 @@ import edu.mst.distopsysproj.util.ProtocolConstants;
 public class Person extends Agent {
 	private static final long serialVersionUID = 1L;
 
-	public static String[] persons = {"person1", "person2", "person3", "person4"};
+	public static String[] persons = { "person1", "person2", "person3", "person4" };
 
 	private Bridge bridge;
 	
@@ -27,7 +27,7 @@ public class Person extends Agent {
 
 	@Override
 	protected void setup() {
-		tryCS = false;
+		tryCS = true;
 		want = false;
 		in = false;
 		acksNumber = 0;
@@ -48,20 +48,31 @@ public class Person extends Agent {
 			this.lastLocation = Location.B;
 		}
 		
-		tryCS = true;
-
-		addBehaviour(new CrossBridgeBehaviourAgrawala());
+		Object[] args = getArguments();
+		boolean twoVisitors = Boolean.valueOf(args[0].toString()).booleanValue();
+		
+		addBehaviour(new CrossBridgeBehaviourAgrawala(twoVisitors));
 	}
 
 	private class CrossBridgeBehaviourAgrawala extends CyclicBehaviour {
 		private static final long serialVersionUID = 1L;
 		private static final long BRIDGE_WAITING_TIME = 1500;
 
+		// true if two visitors can be at the bridge at once, false otherwise
+		private boolean twoVisitors;
+		
+		public CrossBridgeBehaviourAgrawala(boolean twoVisitors) {
+			this.twoVisitors = twoVisitors;
+		}
+		
 		@Override
 		public void action() {
 			if(tryCS){
 				ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
 				request.setContent(ProtocolConstants.MSGTYPE_REQUEST);
+				request.addUserDefinedParameter(
+						ProtocolConstants.TWOVISITORSPROTOCOL_LASTLOCATION,
+						lastLocation.toString());
 				timestamp = System.currentTimeMillis();
 				request.addUserDefinedParameter(ProtocolConstants.TIMESTAMP, String.valueOf(timestamp));
 				for (String target : persons){
@@ -76,7 +87,7 @@ public class Person extends Agent {
 	
 			if(acksNumber == persons.length-1){
 				in = true;
-				//process enters CS
+				// process enters CS
 				//System.out.println("Person " + myAgent.getLocalName() + " is on the bridge");
 				bridge.enterBridge(myAgent.getLocalName());
 				lastLocation = location;
@@ -92,7 +103,7 @@ public class Person extends Agent {
 			if(in && !want){
 				in = false;
 				acksNumber = 0;
-				
+				// process left CS
 				//System.out.println("Person " + myAgent.getLocalName() + " left the bridge");
 				location = Location.getOppositeLocation(lastLocation);
 				bridge.leftBridge(myAgent.getLocalName(), location);
@@ -109,7 +120,6 @@ public class Person extends Agent {
 					}
 				}
 				send(ack);
-//				acksMap.clear();
 				tryCS = true;
 				try {
 					Thread.sleep(BRIDGE_WAITING_TIME);
@@ -123,25 +133,37 @@ public class Person extends Agent {
 				String content = msg.getContent();
 				
 				if(content.equals(ProtocolConstants.MSGTYPE_REQUEST)) {
-				
-					if(!want || compareTimestamps(msg, timestamp)){						
-						ACLMessage ack = msg.createReply();
-						ack.setContent(ProtocolConstants.MSGTYPE_ACK);
-						ack.addUserDefinedParameter(ProtocolConstants.TIMESTAMP,
-								String.valueOf(System.currentTimeMillis()));
-						send(ack);
-					}else {
-						String sender = msg.getSender().getLocalName();
-						acksMap.put(sender, true);
+					String locString = msg.getUserDefinedParameter(
+							ProtocolConstants.TWOVISITORSPROTOCOL_LASTLOCATION);
+					Location senderLastLocation = Location.valueOf(locString);
+					
+					if(!want || compareTimestamps(msg, timestamp)){
+						sendAck(msg);
+					}else{
+						if(twoVisitors && senderLastLocation == lastLocation){
+							sendAck(msg);
+						}else{
+							String sender = msg.getSender().getLocalName();
+							acksMap.put(sender, true);
+						}
 					}
-				
 				}else if(content.equals(ProtocolConstants.MSGTYPE_ACK)) {
 					acksNumber = acksNumber + 1;
-				
 				}else{
 					myAgent.putBack(msg);
 				}
 			}
+		}
+		
+		private void sendAck(ACLMessage msg) {
+			ACLMessage ack = msg.createReply();
+			ack.setContent(ProtocolConstants.MSGTYPE_ACK);
+			ack.addUserDefinedParameter(ProtocolConstants.TIMESTAMP,
+					String.valueOf(System.currentTimeMillis()));
+			ack.addUserDefinedParameter(
+					ProtocolConstants.TWOVISITORSPROTOCOL_LASTLOCATION,
+					lastLocation.toString());
+			send(ack);
 		}
 		
 		private boolean compareTimestamps(ACLMessage msg, long localTimestamp){

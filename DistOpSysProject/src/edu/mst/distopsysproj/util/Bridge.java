@@ -1,7 +1,7 @@
 package edu.mst.distopsysproj.util;
 
-import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import edu.mst.distopsysproj.person.Location;
 
@@ -13,7 +13,7 @@ public class Bridge {
 	private Queue<String> queue;
 
 	protected Bridge() {
-		queue = new LinkedList<String>();
+		queue = new ConcurrentLinkedQueue<String>();
 	}
 	
 	public static Bridge getInstance(){

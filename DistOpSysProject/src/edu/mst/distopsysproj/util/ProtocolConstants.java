@@ -12,4 +12,8 @@ public class ProtocolConstants {
 	public static final String MSGTYPE_REQUEST = "MessageTypeRequest";
 	public static final String MSGTYPE_ACK = "MessageTypeAck";
 
+	public static final String TWOVISITORSPROTOCOL_LASTLOCATION = "LastLocation";
+
+	public static final String ARG_TWOVISITORS = "twovisitors";
+
 }

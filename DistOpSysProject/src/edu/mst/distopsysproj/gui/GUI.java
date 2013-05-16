@@ -31,7 +31,6 @@ public class GUI extends Agent {
 		@Override
 		public void action() {
 			String[] data = bridge.pollBridge();
-			System.out.println(bridge.toString());
 			if(data != null){			
 				frame.setCircleToPosition(data[0], Location.valueOf(data[1]));
 			}
