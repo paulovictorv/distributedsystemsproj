@@ -1,5 +1,13 @@
 package edu.mst.distopsysproj.util;
 
+/**
+ * Class of constants to be used in the protocol,
+ * including exchange messaging time, message's
+ * defined parameters, and command-line arguments
+ * 
+ * @author Julio Zynger, Paulo Victor Melo
+ *
+ */
 public class ProtocolConstants {
 	
 	public final static Integer ASK_LOCATION_INTERVAL = 1 * 500; // 0.5 seconds
