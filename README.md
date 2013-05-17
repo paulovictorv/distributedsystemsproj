@@ -5,7 +5,8 @@ CS384 - Distributed Operating Systems - Programming Assignment
 
 Julio Zynger
 Paulo Victor Vieira de Melo
--------------------------------------
+
+
 
 To compile and run this project, you will need to download and install the latest versions of:
  - Apache Maven (http://maven.apache.org/)
